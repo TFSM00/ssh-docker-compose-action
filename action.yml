@@ -5,11 +5,11 @@ branding:
   color: purple
 description: SSH into host and deploy repository with Docker-Compose
 inputs:
-  ssh_private_key:
-    description: Private SSH key used for logging into remote system.
-    required: true
   ssh_host:
     description: Remote host name.
+    required: true
+  ssh_password:
+    description: Remote user password
     required: true
   ssh_port:
     description: Remote SSH port.
@@ -37,7 +37,7 @@ runs:
     SSH_USER: ${{ inputs.ssh_user }}
     SSH_HOST: ${{ inputs.ssh_host }}
     SSH_PORT: ${{ inputs.ssh_port }}
-    SSH_PRIVATE_KEY: ${{ inputs.ssh_private_key }}
+    SSH_PASSWORD: ${{ inputs.ssh_password }}
     DOCKER_COMPOSE_FILENAME: ${{ inputs.docker_compose_filename }}
     DOCKER_COMPOSE_PREFIX: ${{ inputs.docker_compose_prefix }}
     USE_DOCKER_STACK: ${{ inputs.use_stack }}

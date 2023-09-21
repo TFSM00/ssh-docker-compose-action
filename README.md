@@ -6,7 +6,7 @@ This action stands out because it doesn't require the use of unknown Docker imag
 
 ## Inputs
 
-- `ssh_private_key` - Private SSH key for authentication on the remote system. It is recommended to keep this key secure in GitHub secrets.
+- `ssh_password` - It is recommended to keep this password secure in GitHub secrets.
 - `ssh_host` - SSH Host Name.
 - `ssh_port` - Remote port, default is 22.
 - `ssh_user` - Remote username with permissions to access Docker.
@@ -21,51 +21,9 @@ Let's assume we have a repository containing only a `docker-compose` file, and w
 
 Follow these steps:
 
-1. Generate a key pair (do not use a password):
+1. Add the password, username, port and host to the repository secrets. Suppose the names of the secrets are `SSH_PASSWORD`, `SSH_USER`, `SSH_PORT` and `SSH_HOST`.
 
-```
-ssh-keygen -t ed25519 -f ~/.ssh/deploy_key
-
-```
-
-2. Create a user on the remote server that will be responsible for deploying the containers. Do not set a password for this user:
-
-```
-ssh example.com
-$ sudo useradd -m -b /var/lib -G docker docker-deploy
-
-```
-
-3. Allow login to this user using the key generated in step one:
-
-```
-scp deploy_key.pub example.com:~
-ssh example.com
-$ sudo mkdir /var/lib/docker-deploy/.ssh
-$ sudo chown docker-deploy:docker-deploy /var/lib/docker-deploy/.ssh
-$ sudo install -o docker-deploy -g docker-deploy -m 0600 deploy_key.pub /var/lib/docker-deploy/.ssh/authorized_keys
-$ sudo chmod 0500 /var/lib/docker-deploy/.ssh
-$ rm deploy_key.pub
-
-```
-
-4. Test access to the server:
-
-```
-ssh -i deploy_key docker-deploy@example.com
-
-```
-
-5. Add the private key and username to the repository secrets. Suppose the names of the secrets are `EXAMPLE_COM_SSH_PRIVATE_KEY` and `EXAMPLE_COM_SSH_USER`.
-
-6. Remove your local copy of the SSH key:
-
-```
-rm deploy_key
-
-```
-
-7. Configure the GitHub Actions workflow (for example, `.github/workflows/main.yml`):
+2. Configure the GitHub Actions workflow (for example, `.github/workflows/main.yml`):
 
 ```
 name: Deploy
@@ -81,42 +39,13 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - uses: humbertocrispim/ssh-docker-compose-action@v1.0.0
+    - uses: TFSM00/ssh-docker-compose-action@main
       name: Remote Deployment with Docker-Compose
       with:
-        ssh_host: example.com
-        ssh_private_key: ${{ secrets.EXAMPLE_COM_SSH_PRIVATE_KEY }}
-        ssh_user: ${{ secrets.EXAMPLE_COM_SSH_USER }}
+        ssh_host: ${{ secrets.SSH_HOST }}
+        ssh_password: ${{ secrets.SSH_PASSWORD }}
+        ssh_user: ${{ secrets.SSH_USER }}
+        ssh_port: ${{ secrets.SSH_PORT }}
         docker_compose_prefix: example_com
         pull: true # Update images when pulling
-
-```
-
-8. Everything is set!
-
-# Swarm & Stack
-
-If you want to use advanced features such as secrets, you need to set up a Docker Swarm cluster and use the 'docker stack' command instead of the simple 'docker-compose'. To do this, set the `use_stack` parameter to `true`:
-
-```
-name: Deploy
-on:
-  push:
-    branches: [ master ]
-
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-
-    steps:
-    - actions/chockout@v2
-
-    - uses: humbertocrispim/ssh-docker-compose-action@v1.0.0
-      name: Remote Deployment with Docker-Stack
-      with:
-        ssh_host: example.com
-        ssh_private_key: ${{ secrets.EXAMPLE_COM_SSH_PRIVATE_KEY }}
-        ssh_user: ${{ secrets.EXAMPLE_COM_SSH_USER }}
-        docker_compose_prefix: example.com
-        use_stack: 'true'
 ```
