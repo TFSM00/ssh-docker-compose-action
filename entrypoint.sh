@@ -20,7 +20,7 @@ tar cjvf /tmp/workspace.tar.bz2 --exclude .git .
 log "Launching ssh agent."
 eval `ssh-agent -s`
 
-remote_command="set -e ; log() { echo '>> [remote]' \$@ ; } ; cleanup() { log 'Removing workspace...'; rm -rf \"\$HOME/workspace\" ; } ; log 'Creating workspace directory...' ; mkdir -p \"\$HOME/microtasker\" ; trap cleanup EXIT ; log 'Unpacking workspace...' ; tar -C \"\$HOME/microtasker\" -xjv ; log 'Launching docker compose...' ; cd \"\$HOME/microtasker\" ; docker compose -f \"$DOCKER_COMPOSE_FILENAME\" -p \"$DOCKER_COMPOSE_PREFIX\" up -d --remove-orphans --build"
+remote_command="set -e ; log() { echo '>> [remote]' \$@ ; } ; cleanup() { log 'Removing workspace...'; rm -rf \"\$HOME/workspace\" ; } ; log 'Creating workspace directory...' ; mkdir -p \"\$HOME/microtasker\" ; trap cleanup EXIT ; log 'Unpacking workspace...' ; tar -C \"\$HOME/microtasker\" -xjv ; log 'Launching docker compose...' ; cd \"\$HOME/microtasker\" ; docker compose --envfile \"\$HOME/microtasker-cfg/env-vars.txt\" -f \"$DOCKER_COMPOSE_FILENAME\" -p \"$DOCKER_COMPOSE_PREFIX\" up -d --remove-orphans --build"
 if $PULL; then
   remote_command="set -e ; log() { echo '>> [remote]' \$@ ; } ; cleanup() { log 'Removing workspace...'; rm -rf \"\$HOME/workspace\" ; } ; log 'Creating workspace directory...' ; mkdir -p \"\$HOME/microtasker\" ; trap cleanup EXIT ; log 'Unpacking workspace...' ; tar -C \"\$HOME/microtasker\" -xjv ; log 'Launching docker compose...' ; cd \"\$HOME/microtasker\" ; log 'Pull images...' ; docker compose pull ; docker compose -f \"$DOCKER_COMPOSE_FILENAME\" -p \"$DOCKER_COMPOSE_PREFIX\" up -d --remove-orphans --build"
 fi
